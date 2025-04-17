@@ -53,7 +53,7 @@ public class BookingService {
         Booking booking = new Booking();
         booking.setCustomer(currentUser);
         booking.setPartner(partner);
-        booking.setService(serviceCatalog);
+        booking.setServiceCatalog(serviceCatalog);
         booking.setBookingDate(request.getBookingDate());
         booking.setStartTime(request.getStartTime());
         booking.setEndTime(endTime);
@@ -195,8 +195,8 @@ public class BookingService {
                 .customerName(booking.getCustomer().getFirstName() + " " + booking.getCustomer().getLastName())
                 .partnerId(booking.getPartner().getId())
                 .partnerName(booking.getPartner().getFirstName() + " " + booking.getPartner().getLastName())
-                .serviceId(booking.getService().getId())
-                .serviceName(booking.getService().getName())
+                .serviceId(booking.getServiceCatalog().getId())
+                .serviceName(booking.getServiceCatalog().getName())
                 .bookingDate(booking.getBookingDate())
                 .startTime(booking.getStartTime())
                 .endTime(booking.getEndTime())

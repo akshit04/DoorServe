@@ -13,10 +13,10 @@ import java.time.LocalTime;
 
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
 public class BookingRequest {
     private Long partnerId;
     private Long serviceId;
