@@ -6,16 +6,17 @@ import com.doorserve.exception.ResourceNotFoundException;
 import com.doorserve.exception.UnauthorizedException;
 import com.doorserve.model.Booking;
 import com.doorserve.model.BookingStatus;
-import com.doorserve.model.Service;
+import com.doorserve.model.ServicesCatalog;
 import com.doorserve.model.User;
 import com.doorserve.model.UserType;
 import com.doorserve.repository.BookingRepository;
-import com.doorserve.repository.ServiceRepository;
+import com.doorserve.repository.ServicesCatalogRepository;
 import com.doorserve.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalTime;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,7 +26,7 @@ public class BookingService {
 
     private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
-    private final ServiceRepository serviceRepository;
+    private final ServicesCatalogRepository servicesCatalogRepository;
 
     public BookingDto createBooking(BookingRequest request, User currentUser) {
         if (currentUser.getUserType() != UserType.CUSTOMER) {
@@ -39,11 +40,11 @@ public class BookingService {
             throw new ResourceNotFoundException("Selected user is not a service partner");
         }
 
-        Service service = serviceRepository.findById(request.getServiceId())
-                .orElseThrow(() -> new ResourceNotFoundException("Service not found"));
+        ServicesCatalog serviceCatalog = servicesCatalogRepository.findById(request.getServiceId())
+                .orElseThrow(() -> new ResourceNotFoundException("ServiceCatalog not found"));
 
         // Calculate end time based on service duration
-        LocalTime endTime = request.getStartTime().plusMinutes(service.getDuration());
+        LocalTime endTime = request.getStartTime().plusMinutes(request.getDuration());
 
         // Check if the partner is available at the requested time
         // This would involve checking for overlap with existing bookings
@@ -52,12 +53,12 @@ public class BookingService {
         Booking booking = new Booking();
         booking.setCustomer(currentUser);
         booking.setPartner(partner);
-        booking.setService(service);
+        booking.setService(serviceCatalog);
         booking.setBookingDate(request.getBookingDate());
         booking.setStartTime(request.getStartTime());
         booking.setEndTime(endTime);
         booking.setStatus(BookingStatus.PENDING);
-        booking.setTotalPrice(service.getPrice());
+        booking.setTotalPrice(request.getPrice());
 
         Booking savedBooking = bookingRepository.save(booking);
         
@@ -160,7 +161,7 @@ public class BookingService {
         }
         
         // Calculate end time based on service duration
-        LocalTime endTime = request.getStartTime().plusMinutes(booking.getService().getDuration());
+        LocalTime endTime = request.getStartTime().plusMinutes(request.getDuration());
         
         // Check partner availability
         checkPartnerAvailability(booking.getPartner().getId(), request.getBookingDate(), 
