@@ -97,16 +97,4 @@ public class ServicesCatalogService {
         return servicesCatalogRepository.findByNameContainingOrDescriptionContaining(
                 searchTerm, searchTerm);
     }
-
-    /**
-     * Find featured or recommended services
-     * @param limit Maximum number of services to return
-     * @return List of featured services
-     */
-    public List<ServicesCatalog> findFeaturedServices(int limit) {
-        return servicesCatalogRepository.findByFeaturedTrueOrderByRatingDesc()
-                .stream()
-                .limit(limit)
-                .toList();
-    }
 }

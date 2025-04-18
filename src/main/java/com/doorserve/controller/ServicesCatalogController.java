@@ -63,9 +63,4 @@ public class ServicesCatalogController {
     public ResponseEntity<List<ServicesCatalog>> searchServicesCatalog(@RequestParam String term) {
         return ResponseEntity.ok(servicesCatalogService.searchServices(term));
     }
-
-    @GetMapping("/featured")
-    public ResponseEntity<List<ServicesCatalog>> getFeaturedServicesCatalog(@RequestParam(defaultValue = "5") int limit) {
-        return ResponseEntity.ok(servicesCatalogService.findFeaturedServices(limit));
-    }
 }
