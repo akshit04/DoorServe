@@ -1,4 +1,4 @@
 .env
 .vscode
-application.yml
+resource/application.yml
 target/

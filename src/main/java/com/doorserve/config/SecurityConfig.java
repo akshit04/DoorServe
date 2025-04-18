@@ -25,6 +25,7 @@ public class SecurityConfig {
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
 
     @Bean
+    @SuppressWarnings("removal")
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .cors().configurationSource(corsConfigurationSource())
@@ -44,6 +45,18 @@ public class SecurityConfig {
 
         return http.build();
     }
+
+    // @SuppressWarnings("removal")
+    // @Bean
+    // public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    //     http
+    //     .authorizeHttpRequests(auth -> auth
+    //         .requestMatchers("/").permitAll() // Allow all requests to the root path
+    //         .anyRequest().authenticated() // Require authentication for all other paths
+    //     )
+    //      .oauth2Login();
+    //     return http.build();
+    // }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {

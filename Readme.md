@@ -1,7 +1,7 @@
 ### General Info:
-1. Port: [http://localhost:8080/](http://localhost:8080/)
-2. database name: doorserve
-3. db user: akshit_kharbanda
+- App URL: http://localhost:8080/oauth2/authorization/google
+- database name: doorserve
+- db user: akshit_kharbanda
 
 ### Commands:
 1. Build: `mvn clean install`

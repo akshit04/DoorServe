@@ -17,14 +17,20 @@ spring:
       client:
         registration:
           google:
-            client-id: ${process.env.GOOGLE_CLIENT_ID}
-            client-secret: ${process.env.GOOGLE_CLIENT_SECRET}
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            redirect-uri: http://localhost:8080/login/oauth2/code/google
             scope:
               - email
+              - openid
               - profile
+  logging:
+    level:
+      org.springframework.security: DEBUG
+      org.springframework.security.oauth2: DEBUG
 
 jwt:
-  secret-key: ${JWT_SECRET:process.env.JWT_SECRET}
+  secret-key: ${JWT_SECRET}
   expiration: 86400000 # 24 hours
 
 server:
