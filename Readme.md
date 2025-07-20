@@ -1,44 +1,19 @@
-### General Info:
-- App URL: http://localhost:8080/oauth2/authorization/google
-- database name: doorserve
-- db user: akshit_kharbanda
+DoorServe is a service marketplace platform that connects customers with service providers (partners) for on-demand home services.
 
-### Commands:
-1. Build: `mvn clean install`
-2. Run the application: `mvn spring-boot:run`
+Here's what the business is trying to achieve:
 
-### PostgreSql server:
- 1. Start psql server - `brew services start postgresql`
- 2. Stop psql server - `brew services stop postgresql`
- 3. Restart psql server - `brew services restart postgresql`
- 4. Login as root - `psql postgres`
- 5. Login as a user - `postgresql -u door-serve-test-user -p -h localhost`
-    1. pswd: `thats-what-she-said`
+**Core Business Purpose:** DoorServe operates as a two-sided marketplace where customers can book various home services from verified service partners. Think of it like Uber but for home services - customers browse a catalog of available services, book appointments with service providers, and manage their bookings through the platform.
 
-### PostgreSql Commands:
- - Exit psql - `\q`
- - Show users - `\du`
- - Show database - `\l`
- - Show tables:
-   - connect to the database - `\c database_name`
-   - show tables - `\dt`
- - Check table schema - `\d+ tablename`
- - Create database - `CREATE DATABASE doorserve;`
- - Grant postgresql-user permission:
-    - `GRANT ALL PRIVILEGES ON example_db.* TO 'door-serve-test-user'@'localhost';`
-    - `FLUSH PRIVILEGES`
-    - Grant for all databases - `GRANT ALL PRIVILEGES ON *.* TO 'door-serve-test-user'@'localhost';`
- - Create TABLE:
-```
-CREATE TABLE user (
-  document_id VARCHAR(36) UNIQUE  PRIMARY KEY,
-  username VARCHAR(50) NOT NULL UNIQUE,
-  first_name VARCHAR(20) NOT NULL,
-  last_name VARCHAR(20) NOT NULL,
-  password VARCHAR(25) NOT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-```
- - Delete tables - `DROP TABLE table_1, table_2;`
- - NEXT_COMMAND
+#### Key Business Model:
+
+ - Customers can browse services, book appointments, and pay for services
+ - Partners (service providers) offer their services through the platform and fulfill bookings
+ - Platform facilitates the connection, handles booking management, and likely takes a commission
+
+#### Value Proposition:
+
+ - For customers: Convenient access to vetted home service providers with easy booking and scheduling
+ - For service providers: Access to a customer base and streamlined booking management
+ - For the platform: Revenue through transaction fees or commissions
+
+The system handles the entire service booking lifecycle - from service discovery and scheduling to payment processing and booking status management. It's essentially digitizing the traditional process of finding and hiring local service providers for home maintenance, repairs, cleaning, or other services.
