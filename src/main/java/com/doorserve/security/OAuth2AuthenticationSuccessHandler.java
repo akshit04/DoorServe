@@ -21,8 +21,8 @@ public class OAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationS
 
     private final JwtService jwtService;
     private final UserRepository userRepository;
-    private final String frontendUrl = "http://localhost:3000/auth/callback";
-    // private final String frontendUrl = "http://google.com";
+    // private final String frontendUrl = "http://localhost:3000/auth/callback";
+    private final String frontendUrl = "http://google.com";
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
