@@ -22,4 +22,18 @@ public interface ServicesCatalogRepository extends JpaRepository<ServicesCatalog
      * @return List of matching services
      */
     List<ServicesCatalog> findByNameContainingOrDescriptionContaining(String name, String description);
+    
+    /**
+     * Find distinct categories
+     * @return List of unique category names
+     */
+    @org.springframework.data.jpa.repository.Query("SELECT DISTINCT s.category FROM ServicesCatalog s ORDER BY s.category")
+    List<String> findDistinctCategories();
+    
+    /**
+     * Count services in a category
+     * @param category The category name
+     * @return Number of services in the category
+     */
+    long countByCategory(String category);
 }

@@ -1,6 +1,9 @@
 package com.doorserve.service;
 
+import com.doorserve.dto.ServiceDetailsDto;
+import com.doorserve.model.PartnerService;
 import com.doorserve.model.ServicesCatalog;
+import com.doorserve.repository.PartnerServiceRepository;
 import com.doorserve.repository.ServicesCatalogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,10 +16,13 @@ import java.util.Optional;
 public class ServicesCatalogService {
 
     private final ServicesCatalogRepository servicesCatalogRepository;
+    private final PartnerServiceRepository partnerServiceRepository;
 
     @Autowired
-    public ServicesCatalogService(ServicesCatalogRepository servicesCatalogRepository) {
+    public ServicesCatalogService(ServicesCatalogRepository servicesCatalogRepository, 
+                                 PartnerServiceRepository partnerServiceRepository) {
         this.servicesCatalogRepository = servicesCatalogRepository;
+        this.partnerServiceRepository = partnerServiceRepository;
     }
 
     /**
@@ -96,5 +102,61 @@ public class ServicesCatalogService {
     public List<ServicesCatalog> searchServices(String searchTerm) {
         return servicesCatalogRepository.findByNameContainingOrDescriptionContaining(
                 searchTerm, searchTerm);
+    }
+
+    /**
+     * Get detailed service information including available partners
+     * @param serviceId The service ID
+     * @return ServiceDetailsDto with service and partner information
+     */
+    public ServiceDetailsDto getServiceDetails(Long serviceId) {
+        Optional<ServicesCatalog> serviceOpt = servicesCatalogRepository.findById(serviceId);
+        if (serviceOpt.isEmpty()) {
+            return null;
+        }
+
+        ServicesCatalog service = serviceOpt.get();
+        List<PartnerService> partnerServices = partnerServiceRepository.findAvailablePartnersByServiceId(serviceId);
+
+        List<ServiceDetailsDto.PartnerServiceDto> partnerDtos = partnerServices.stream()
+                .map(ps -> ServiceDetailsDto.PartnerServiceDto.builder()
+                        .id(ps.getId())
+                        .partnerId(ps.getPartner().getId())
+                        .partnerName(ps.getPartner().getFirstName() + " " + ps.getPartner().getLastName())
+                        .partnerEmail(ps.getPartner().getEmail())
+                        .price(ps.getPrice())
+                        .duration(ps.getDuration())
+                        .description(ps.getDescription())
+                        .experienceYears(ps.getExperienceYears())
+                        .rating(ps.getRating())
+                        .totalJobs(ps.getTotalJobs())
+                        .available(ps.getAvailable())
+                        .build())
+                .toList();
+
+        // Calculate statistics
+        java.math.BigDecimal minPrice = partnerServices.stream()
+                .map(PartnerService::getPrice)
+                .min(java.math.BigDecimal::compareTo)
+                .orElse(service.getPrice());
+
+        java.math.BigDecimal maxPrice = partnerServices.stream()
+                .map(PartnerService::getPrice)
+                .max(java.math.BigDecimal::compareTo)
+                .orElse(service.getPrice());
+
+        Double averageRating = partnerServices.stream()
+                .mapToDouble(PartnerService::getRating)
+                .average()
+                .orElse(service.getRating() != null ? service.getRating() : 0.0);
+
+        return ServiceDetailsDto.builder()
+                .service(service)
+                .availablePartners(partnerDtos)
+                .minPrice(minPrice)
+                .maxPrice(maxPrice)
+                .totalPartners(partnerServices.size())
+                .averageRating(averageRating)
+                .build();
     }
 }

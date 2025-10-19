@@ -42,7 +42,7 @@ public class AuthController {
                 "services", "/api/services/*",
                 "bookings", "/api/bookings/*",
                 "partners", "/api/partners/*",
-                "categories", "/api/services-catalog/*"
+                "categories", "/api/categories/*"
             )
         );
     }
@@ -50,10 +50,10 @@ public class AuthController {
     @GetMapping("/db-status")
     public Map<String, Object> databaseStatus() {
         return Map.of(
-            "message", "Check database status by calling /api/services or /api/services-catalog",
+            "message", "Check database status by calling /api/services or /api/categories",
             "endpoints_to_test", Map.of(
                 "services", "/api/services",
-                "categories", "/api/services-catalog",
+                "categories", "/api/categories",
                 "users", "/api/auth/me (requires authentication)"
             )
         );
