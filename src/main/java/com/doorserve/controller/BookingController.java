@@ -3,6 +3,7 @@ package com.doorserve.controller;
 import com.doorserve.dto.BookingDto;
 import com.doorserve.dto.BookingRequest;
 import com.doorserve.model.User;
+import com.doorserve.service.AuthService;
 import com.doorserve.service.BookingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,12 +18,13 @@ import java.util.List;
 public class BookingController {
 
     private final BookingService bookingService;
+    private final AuthService authService;
 
     @PostMapping
     public ResponseEntity<BookingDto> createBooking(
             @RequestBody BookingRequest bookingRequest,
             Authentication authentication) {
-        User currentUser = (User) authentication.getPrincipal();
+        User currentUser = authService.getCurrentUser(authentication);
         return ResponseEntity.ok(bookingService.createBooking(bookingRequest, currentUser));
     }
 
@@ -30,7 +32,24 @@ public class BookingController {
     public ResponseEntity<List<BookingDto>> getCurrentUserBookings(
             Authentication authentication,
             @RequestParam(required = false) String status) {
-        User currentUser = (User) authentication.getPrincipal();
+        User currentUser = authService.getCurrentUser(authentication);
+        return ResponseEntity.ok(bookingService.getUserBookings(currentUser, status));
+    }
+
+    @GetMapping("/customer")
+    public ResponseEntity<List<BookingDto>> getCustomerBookings(
+            Authentication authentication,
+            @RequestParam(required = false) String status) {
+        User currentUser = authService.getCurrentUser(authentication);
+        return ResponseEntity.ok(bookingService.getUserBookings(currentUser, status));
+    }
+
+    @GetMapping("/partner")
+    public ResponseEntity<List<BookingDto>> getPartnerBookings(
+            Authentication authentication,
+            @RequestParam(required = false) String status) {
+        User currentUser = authService.getCurrentUser(authentication);
+        // For now, return the same as user bookings. This would typically filter by partner
         return ResponseEntity.ok(bookingService.getUserBookings(currentUser, status));
     }
 
@@ -38,7 +57,7 @@ public class BookingController {
     public ResponseEntity<BookingDto> getBookingById(
             @PathVariable Long id,
             Authentication authentication) {
-        User currentUser = (User) authentication.getPrincipal();
+        User currentUser = authService.getCurrentUser(authentication);
         return ResponseEntity.ok(bookingService.getBookingById(id, currentUser));
     }
 
@@ -46,7 +65,7 @@ public class BookingController {
     public ResponseEntity<BookingDto> cancelBooking(
             @PathVariable Long id,
             Authentication authentication) {
-        User currentUser = (User) authentication.getPrincipal();
+        User currentUser = authService.getCurrentUser(authentication);
         return ResponseEntity.ok(bookingService.cancelBooking(id, currentUser));
     }
 
@@ -54,7 +73,7 @@ public class BookingController {
     public ResponseEntity<BookingDto> completeBooking(
             @PathVariable Long id,
             Authentication authentication) {
-        User currentUser = (User) authentication.getPrincipal();
+        User currentUser = authService.getCurrentUser(authentication);
         return ResponseEntity.ok(bookingService.completeBooking(id, currentUser));
     }
 
@@ -63,7 +82,7 @@ public class BookingController {
             @PathVariable Long id,
             @RequestBody BookingRequest bookingRequest,
             Authentication authentication) {
-        User currentUser = (User) authentication.getPrincipal();
+        User currentUser = authService.getCurrentUser(authentication);
         return ResponseEntity.ok(bookingService.rescheduleBooking(id, bookingRequest, currentUser));
     }
 }

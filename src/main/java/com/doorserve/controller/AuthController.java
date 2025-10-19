@@ -28,7 +28,35 @@ public class AuthController {
 
     @GetMapping("/test")
     public Map<String, String> test() {
-        return Map.of("status", "OAuth2 configuration is working");
+        return Map.of("status", "OAuth2 configuration is working", "timestamp", java.time.LocalDateTime.now().toString());
+    }
+
+    @GetMapping("/health")
+    public Map<String, Object> health() {
+        return Map.of(
+            "status", "healthy",
+            "timestamp", java.time.LocalDateTime.now().toString(),
+            "version", "1.0.0",
+            "endpoints", Map.of(
+                "auth", "/api/auth/*",
+                "services", "/api/services/*",
+                "bookings", "/api/bookings/*",
+                "partners", "/api/partners/*",
+                "categories", "/api/services-catalog/*"
+            )
+        );
+    }
+
+    @GetMapping("/db-status")
+    public Map<String, Object> databaseStatus() {
+        return Map.of(
+            "message", "Check database status by calling /api/services or /api/services-catalog",
+            "endpoints_to_test", Map.of(
+                "services", "/api/services",
+                "categories", "/api/services-catalog",
+                "users", "/api/auth/me (requires authentication)"
+            )
+        );
     }
 
     @GetMapping("/me")
