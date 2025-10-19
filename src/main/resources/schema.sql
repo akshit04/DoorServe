@@ -19,8 +19,12 @@ CREATE TABLE IF NOT EXISTS services_catalog (
     name VARCHAR(255) NOT NULL,
     description TEXT,
     category VARCHAR(100) NOT NULL,
-    -- price DECIMAL(10, 2),
-    -- duration INTEGER,
+    price DECIMAL(10, 2),
+    duration INTEGER,
+    rating DECIMAL(3, 2),
+    image_url VARCHAR(255),
+    available BOOLEAN DEFAULT true,
+    featured BOOLEAN DEFAULT false,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP
 );
@@ -35,6 +39,17 @@ CREATE TABLE IF NOT EXISTS services_catalog (
 --     updated_at TIMESTAMP,
 --     UNIQUE(partner_id, service_id)
 -- );
+
+CREATE TABLE IF NOT EXISTS cart (
+    id SERIAL PRIMARY KEY,
+    user_id BIGINT NOT NULL REFERENCES users(id),
+    service_id BIGINT NOT NULL REFERENCES services_catalog(id),
+    quantity INTEGER NOT NULL DEFAULT 1,
+    price DECIMAL(10, 2),
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP,
+    UNIQUE(user_id, service_id)
+);
 
 CREATE TABLE IF NOT EXISTS bookings (
     id SERIAL PRIMARY KEY,

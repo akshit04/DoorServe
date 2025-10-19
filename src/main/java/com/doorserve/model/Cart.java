@@ -8,6 +8,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
@@ -23,32 +25,24 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "services_catalog")
-public class ServicesCatalog {
+@Table(name = "cart")
+public class Cart {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
-    private String name;
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
-    private String description;
+    @ManyToOne
+    @JoinColumn(name = "service_id", nullable = false)
+    private ServicesCatalog service;
 
     @Column(nullable = false)
-    private String category;
+    private Integer quantity = 1;
 
     private BigDecimal price;
-    
-    private Integer duration; // in minutes
-    
-    private Double rating;
-    
-    @Column(name = "image_url")
-    private String imageUrl;
-    
-    private Boolean available = true;
-    
-    private Boolean featured = false;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;

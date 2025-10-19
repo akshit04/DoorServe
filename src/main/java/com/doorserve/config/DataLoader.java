@@ -12,6 +12,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 
@@ -157,6 +158,62 @@ public class DataLoader implements CommandLineRunner {
         service.setName(name);
         service.setDescription(description);
         service.setCategory(category);
+        
+        // Set sample prices based on category
+        service.setPrice(getSamplePrice(category));
+        
+        // Set sample duration based on service type
+        service.setDuration(getSampleDuration(name));
+        
+        // Set sample rating
+        service.setRating(4.0 + (Math.random() * 1.0)); // Random rating between 4.0 and 5.0
+        
+        // Set availability and featured status
+        service.setAvailable(true);
+        service.setFeatured(Math.random() < 0.3); // 30% chance of being featured
+        
         return service;
+    }
+    
+    private BigDecimal getSamplePrice(String category) {
+        String cat = category.toLowerCase();
+        if ("cleaning".equals(cat)) {
+            return BigDecimal.valueOf(80 + (Math.random() * 120)); // $80-200
+        } else if ("plumbing".equals(cat)) {
+            return BigDecimal.valueOf(90 + (Math.random() * 110)); // $90-200
+        } else if ("electrical".equals(cat)) {
+            return BigDecimal.valueOf(100 + (Math.random() * 150)); // $100-250
+        } else if ("handyman".equals(cat)) {
+            return BigDecimal.valueOf(60 + (Math.random() * 90)); // $60-150
+        } else if ("landscaping".equals(cat)) {
+            return BigDecimal.valueOf(70 + (Math.random() * 130)); // $70-200
+        } else if ("moving".equals(cat)) {
+            return BigDecimal.valueOf(150 + (Math.random() * 250)); // $150-400
+        } else if ("pet care".equals(cat)) {
+            return BigDecimal.valueOf(25 + (Math.random() * 75)); // $25-100
+        } else if ("security".equals(cat)) {
+            return BigDecimal.valueOf(120 + (Math.random() * 180)); // $120-300
+        } else {
+            return BigDecimal.valueOf(75 + (Math.random() * 125)); // $75-200
+        }
+    }
+    
+    private Integer getSampleDuration(String serviceName) {
+        String name = serviceName.toLowerCase();
+        if ("house cleaning".equals(name) || "deep cleaning".equals(name)) {
+            return 180 + (int)(Math.random() * 120); // 3-5 hours
+        } else if ("office cleaning".equals(name)) {
+            return 120 + (int)(Math.random() * 180); // 2-5 hours
+        } else if ("local moving".equals(name)) {
+            return 240 + (int)(Math.random() * 240); // 4-8 hours
+        } else if ("garden design".equals(name) || "tree trimming".equals(name)) {
+            return 120 + (int)(Math.random() * 180); // 2-5 hours
+        } else if ("dog walking".equals(name)) {
+            return 30 + (int)(Math.random() * 30); // 30-60 minutes
+        } else if ("pet grooming".equals(name)) {
+            return 60 + (int)(Math.random() * 60); // 1-2 hours
+        } else {
+            return 60 + (int)(Math.random() * 120); // 1-3 hours
+        }
     }
 }
