@@ -1,10 +1,10 @@
 package com.doorserve.service;
 
 import com.doorserve.model.Cart;
-import com.doorserve.model.ServicesCatalog;
+import com.doorserve.model.PartnerService;
 import com.doorserve.model.User;
 import com.doorserve.repository.CartRepository;
-import com.doorserve.repository.ServicesCatalogRepository;
+import com.doorserve.repository.PartnerServiceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,18 +17,18 @@ import java.util.Optional;
 public class CartService {
 
     private final CartRepository cartRepository;
-    private final ServicesCatalogRepository servicesCatalogRepository;
+    private final PartnerServiceRepository partnerServiceRepository;
 
     public List<Cart> getUserCart(User user) {
         return cartRepository.findByUserOrderByCreatedAtDesc(user);
     }
 
     @Transactional
-    public Cart addToCart(User user, Long serviceId, Integer quantity) {
-        ServicesCatalog service = servicesCatalogRepository.findById(serviceId)
-                .orElseThrow(() -> new RuntimeException("Service not found"));
+    public Cart addToCart(User user, Long partnerServiceId, Integer quantity) {
+        PartnerService partnerService = partnerServiceRepository.findById(partnerServiceId)
+                .orElseThrow(() -> new RuntimeException("Partner service not found"));
 
-        Optional<Cart> existingCartItem = cartRepository.findByUserAndServiceId(user, serviceId);
+        Optional<Cart> existingCartItem = cartRepository.findByUserAndPartnerServiceId(user, partnerServiceId);
         
         if (existingCartItem.isPresent()) {
             // Update quantity if item already exists
@@ -39,9 +39,9 @@ public class CartService {
             // Create new cart item
             Cart cartItem = new Cart();
             cartItem.setUser(user);
-            cartItem.setService(service);
+            cartItem.setPartnerService(partnerService);
             cartItem.setQuantity(quantity);
-            cartItem.setPrice(service.getPrice());
+            cartItem.setPrice(partnerService.getPrice());
             return cartRepository.save(cartItem);
         }
     }

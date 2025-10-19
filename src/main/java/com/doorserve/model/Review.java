@@ -45,6 +45,10 @@ public class Review {
     @JoinColumn(name = "partner_id", nullable = false)
     private User partner;
 
+    @ManyToOne
+    @JoinColumn(name = "partner_service_id", nullable = false)
+    private PartnerService partnerService;
+
     @Column(nullable = false)
     private Integer rating; // 1-5 stars
 

@@ -20,4 +20,10 @@ public interface PartnerServiceRepository extends JpaRepository<PartnerService, 
     
     @Query("SELECT ps FROM PartnerService ps WHERE ps.serviceCatalog.id = :serviceId AND ps.available = true ORDER BY ps.rating DESC, ps.price ASC")
     List<PartnerService> findAvailablePartnersByServiceId(@Param("serviceId") Long serviceId);
+    
+    @Query("SELECT ps FROM PartnerService ps WHERE ps.partner.id = :partnerId")
+    List<PartnerService> findByPartnerId(@Param("partnerId") Long partnerId);
+    
+    @Query("SELECT ps FROM PartnerService ps WHERE ps.partner.id = :partnerId AND ps.serviceCatalog.id = :serviceCatalogId")
+    Optional<PartnerService> findByPartnerIdAndServiceCatalogId(@Param("partnerId") Long partnerId, @Param("serviceCatalogId") Long serviceCatalogId);
 }

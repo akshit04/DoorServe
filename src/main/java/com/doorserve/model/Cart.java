@@ -36,8 +36,8 @@ public class Cart {
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "service_id", nullable = false)
-    private ServicesCatalog service;
+    @JoinColumn(name = "partner_service_id", nullable = false)
+    private PartnerService partnerService;
 
     @Column(nullable = false)
     private Integer quantity = 1;

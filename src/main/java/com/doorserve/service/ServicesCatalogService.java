@@ -138,17 +138,17 @@ public class ServicesCatalogService {
         java.math.BigDecimal minPrice = partnerServices.stream()
                 .map(PartnerService::getPrice)
                 .min(java.math.BigDecimal::compareTo)
-                .orElse(service.getPrice());
+                .orElse(java.math.BigDecimal.ZERO);
 
         java.math.BigDecimal maxPrice = partnerServices.stream()
                 .map(PartnerService::getPrice)
                 .max(java.math.BigDecimal::compareTo)
-                .orElse(service.getPrice());
+                .orElse(java.math.BigDecimal.ZERO);
 
         Double averageRating = partnerServices.stream()
                 .mapToDouble(PartnerService::getRating)
                 .average()
-                .orElse(service.getRating() != null ? service.getRating() : 0.0);
+                .orElse(0.0);
 
         return ServiceDetailsDto.builder()
                 .service(service)

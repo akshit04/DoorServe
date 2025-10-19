@@ -14,14 +14,13 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMP
 );
 
+-- Service Templates (types of services available, no pricing - that's per provider)
 CREATE TABLE IF NOT EXISTS services_catalog (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     description TEXT,
     category VARCHAR(100) NOT NULL,
-    price DECIMAL(10, 2),
-    duration INTEGER,
-    rating DECIMAL(3, 2),
+    base_duration INTEGER, -- suggested duration
     image_url VARCHAR(255),
     available BOOLEAN DEFAULT true,
     featured BOOLEAN DEFAULT false,
@@ -29,13 +28,15 @@ CREATE TABLE IF NOT EXISTS services_catalog (
     updated_at TIMESTAMP
 );
 
+-- Provider Service Offerings (actual services offered by providers with pricing and ratings)
 CREATE TABLE IF NOT EXISTS partner_services (
     id SERIAL PRIMARY KEY,
     partner_id BIGINT NOT NULL REFERENCES users(id),
     service_catalog_id BIGINT NOT NULL REFERENCES services_catalog(id),
+    title VARCHAR(255), -- Provider's custom title for their service
     price DECIMAL(10, 2) NOT NULL,
     duration INTEGER NOT NULL,
-    description TEXT,
+    description TEXT, -- Provider's custom description
     available BOOLEAN DEFAULT true,
     experience_years INTEGER DEFAULT 0,
     rating DECIMAL(3, 2) DEFAULT 0.0,
@@ -48,19 +49,19 @@ CREATE TABLE IF NOT EXISTS partner_services (
 CREATE TABLE IF NOT EXISTS cart (
     id SERIAL PRIMARY KEY,
     user_id BIGINT NOT NULL REFERENCES users(id),
-    service_id BIGINT NOT NULL REFERENCES services_catalog(id),
+    partner_service_id BIGINT NOT NULL REFERENCES partner_services(id),
     quantity INTEGER NOT NULL DEFAULT 1,
     price DECIMAL(10, 2),
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP,
-    UNIQUE(user_id, service_id)
+    UNIQUE(user_id, partner_service_id)
 );
 
 CREATE TABLE IF NOT EXISTS bookings (
     id SERIAL PRIMARY KEY,
     customer_id BIGINT NOT NULL REFERENCES users(id),
     partner_id BIGINT NOT NULL REFERENCES users(id),
-    service_catalog_id BIGINT NOT NULL REFERENCES services_catalog(id),
+    partner_service_id BIGINT NOT NULL REFERENCES partner_services(id),
     booking_date DATE NOT NULL,
     price DECIMAL(10, 2),
     duration INTEGER,
@@ -92,6 +93,7 @@ CREATE TABLE IF NOT EXISTS reviews (
     booking_id BIGINT NOT NULL REFERENCES bookings(id),
     customer_id BIGINT NOT NULL REFERENCES users(id),
     partner_id BIGINT NOT NULL REFERENCES users(id),
+    partner_service_id BIGINT NOT NULL REFERENCES partner_services(id),
     rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
     comment TEXT,
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
@@ -103,4 +105,5 @@ CREATE TABLE IF NOT EXISTS reviews (
 CREATE INDEX IF NOT EXISTS idx_reviews_booking_id ON reviews(booking_id);
 CREATE INDEX IF NOT EXISTS idx_reviews_customer_id ON reviews(customer_id);
 CREATE INDEX IF NOT EXISTS idx_reviews_partner_id ON reviews(partner_id);
+CREATE INDEX IF NOT EXISTS idx_reviews_partner_service_id ON reviews(partner_service_id);
 CREATE INDEX IF NOT EXISTS idx_reviews_rating ON reviews(rating);

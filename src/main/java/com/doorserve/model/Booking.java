@@ -44,8 +44,8 @@ public class Booking {
     private User partner;
 
     @ManyToOne
-    @JoinColumn(name = "service_catalog_id", nullable = false)
-    private ServicesCatalog serviceCatalog;
+    @JoinColumn(name = "partner_service_id", nullable = false)
+    private PartnerService partnerService;
 
     @Column(name = "booking_date", nullable = false)
     private LocalDate bookingDate;

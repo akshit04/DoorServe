@@ -22,6 +22,7 @@ import org.springframework.stereotype.Component;
 import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Component
@@ -64,7 +65,7 @@ public class DataLoader implements CommandLineRunner {
 
         // Create partner services (linking partners to services)
         createPartnerServices();
-        
+
         // Create sample bookings and reviews
         createSampleBookingsAndReviews();
 
@@ -185,14 +186,8 @@ public class DataLoader implements CommandLineRunner {
         service.setDescription(description);
         service.setCategory(category);
 
-        // Set sample prices based on category
-        service.setPrice(getSamplePrice(category));
-
-        // Set sample duration based on service type
-        service.setDuration(getSampleDuration(name));
-
-        // Set sample rating
-        service.setRating(4.0 + (Math.random() * 1.0)); // Random rating between 4.0 and 5.0
+        // Set suggested duration based on service type
+        service.setBaseDuration(getSampleDuration(name));
 
         // Set availability and featured status
         service.setAvailable(true);
@@ -267,15 +262,18 @@ public class DataLoader implements CommandLineRunner {
                 partnerService.setPartner(partner);
                 partnerService.setServiceCatalog(service);
 
-                // Set partner-specific pricing (±20% of base price)
-                BigDecimal basePrice = service.getPrice() != null ? service.getPrice() : BigDecimal.valueOf(100);
+                // Set partner-specific pricing based on service category
+                BigDecimal basePrice = getSamplePrice(service.getCategory());
                 double variation = 0.8 + (Math.random() * 0.4); // 0.8 to 1.2 multiplier
                 partnerService.setPrice(basePrice.multiply(BigDecimal.valueOf(variation)));
 
                 // Set partner-specific duration (±30 minutes of base duration)
-                int baseDuration = service.getDuration() != null ? service.getDuration() : 60;
+                int baseDuration = service.getBaseDuration() != null ? service.getBaseDuration() : 60;
                 int durationVariation = -30 + (int) (Math.random() * 61); // -30 to +30 minutes
                 partnerService.setDuration(Math.max(30, baseDuration + durationVariation));
+
+                // Set partner's custom title for their service offering
+                partnerService.setTitle(partner.getFirstName() + "'s " + service.getName());
 
                 // Set partner-specific details
                 partnerService.setDescription(getPartnerServiceDescription(partner, service));
@@ -309,7 +307,7 @@ public class DataLoader implements CommandLineRunner {
         List<User> customers = userRepository.findByUserType(UserType.CUSTOMER);
         List<User> partners = userRepository.findByUserType(UserType.PARTNER);
         List<ServicesCatalog> services = servicesCatalogRepository.findAll();
-        
+
         if (customers.isEmpty() || partners.isEmpty() || services.isEmpty()) {
             log.warn("No customers, partners, or services found, skipping bookings and reviews creation");
             return;
@@ -317,33 +315,44 @@ public class DataLoader implements CommandLineRunner {
 
         List<Booking> bookings = new java.util.ArrayList<>();
         List<Review> reviews = new java.util.ArrayList<>();
-        
+
         // Create 15-20 sample bookings (some completed, some in progress)
         for (int i = 0; i < 20; i++) {
-            User customer = customers.get((int)(Math.random() * customers.size()));
-            User partner = partners.get((int)(Math.random() * partners.size()));
-            ServicesCatalog service = services.get((int)(Math.random() * services.size()));
-            
+            User customer = customers.get((int) (Math.random() * customers.size()));
+            User partner = partners.get((int) (Math.random() * partners.size()));
+            ServicesCatalog service = services.get((int) (Math.random() * services.size()));
+
             Booking booking = new Booking();
             booking.setCustomer(customer);
             booking.setPartner(partner);
-            booking.setServiceCatalog(service);
-            
+            // We'll set the partner service later
+
             // Random booking date in the past 30 days
-            java.time.LocalDate bookingDate = java.time.LocalDate.now().minusDays((int)(Math.random() * 30));
+            java.time.LocalDate bookingDate = java.time.LocalDate.now().minusDays((int) (Math.random() * 30));
             booking.setBookingDate(bookingDate);
-            
+
             // Random times
-            java.time.LocalTime startTime = java.time.LocalTime.of(8 + (int)(Math.random() * 10), 0); // 8 AM to 6 PM
+            java.time.LocalTime startTime = java.time.LocalTime.of(8 + (int) (Math.random() * 10), 0); // 8 AM to 6 PM
             booking.setStartTime(startTime);
             booking.setEndTime(startTime.plusHours(2)); // 2 hour duration
-            
-            // Pricing
-            BigDecimal price = service.getPrice() != null ? service.getPrice() : BigDecimal.valueOf(100);
+
+            // Find a partner service for this booking
+            Optional<PartnerService> partnerServiceOpt = partnerServiceRepository
+                    .findByPartnerAndServiceCatalog(partner, service);
+            if (partnerServiceOpt.isEmpty()) {
+                continue; // Skip this booking if no partner service exists
+            }
+            PartnerService partnerService = partnerServiceOpt.get();
+
+            // Set the partner service for this booking
+            booking.setPartnerService(partnerService);
+
+            // Pricing from partner service
+            BigDecimal price = partnerService.getPrice();
             booking.setPrice(price);
             booking.setTotalPrice(price);
             booking.setDuration(120); // 2 hours
-            
+
             // Status - 70% completed, 20% confirmed, 10% pending
             double statusRandom = Math.random();
             if (statusRandom < 0.7) {
@@ -353,14 +362,14 @@ public class DataLoader implements CommandLineRunner {
             } else {
                 booking.setStatus(BookingStatus.PENDING);
             }
-            
+
             bookings.add(booking);
         }
-        
+
         // Save bookings first
         bookings = bookingRepository.saveAll(bookings);
         log.info("Created {} sample bookings", bookings.size());
-        
+
         // Create reviews for completed bookings (80% of completed bookings get reviews)
         for (Booking booking : bookings) {
             if (booking.getStatus() == BookingStatus.COMPLETED && Math.random() < 0.8) {
@@ -368,62 +377,69 @@ public class DataLoader implements CommandLineRunner {
                 review.setBooking(booking);
                 review.setCustomer(booking.getCustomer());
                 review.setPartner(booking.getPartner());
-                
+                review.setPartnerService(booking.getPartnerService());
+
                 // Random rating (weighted towards higher ratings)
                 int rating;
                 double ratingRandom = Math.random();
-                if (ratingRandom < 0.4) rating = 5;      // 40% - 5 stars
-                else if (ratingRandom < 0.7) rating = 4; // 30% - 4 stars  
-                else if (ratingRandom < 0.85) rating = 3; // 15% - 3 stars
-                else if (ratingRandom < 0.95) rating = 2; // 10% - 2 stars
-                else rating = 1;                          // 5% - 1 star
-                
+                if (ratingRandom < 0.4)
+                    rating = 5; // 40% - 5 stars
+                else if (ratingRandom < 0.7)
+                    rating = 4; // 30% - 4 stars
+                else if (ratingRandom < 0.85)
+                    rating = 3; // 15% - 3 stars
+                else if (ratingRandom < 0.95)
+                    rating = 2; // 10% - 2 stars
+                else
+                    rating = 1; // 5% - 1 star
+
                 review.setRating(rating);
-                review.setComment(generateReviewComment(rating, booking.getServiceCatalog().getName()));
-                
+                review.setComment(generateReviewComment(rating, booking.getPartnerService().getTitle()));
+
                 reviews.add(review);
             }
         }
-        
+
         reviewRepository.saveAll(reviews);
         log.info("Created {} sample reviews", reviews.size());
     }
-    
+
     private String generateReviewComment(int rating, String serviceName) {
         String[][] comments = {
-            // 1 star
-            {
-                "Very disappointed with the " + serviceName.toLowerCase() + ". Poor quality and unprofessional service.",
-                "Would not recommend. The service was below expectations and the provider was late.",
-                "Terrible experience. Had to redo the work myself. Complete waste of money."
-            },
-            // 2 stars  
-            {
-                "The " + serviceName.toLowerCase() + " was okay but had several issues. Could be better.",
-                "Service was completed but not to the standard I expected. Some problems with quality.",
-                "Average service with room for improvement. Provider was friendly but work quality was lacking."
-            },
-            // 3 stars
-            {
-                "Decent " + serviceName.toLowerCase() + " service. Got the job done but nothing exceptional.",
-                "Good service overall. A few minor issues but generally satisfied with the results.",
-                "Fair quality work. The provider was professional and completed the job on time."
-            },
-            // 4 stars
-            {
-                "Great " + serviceName.toLowerCase() + " service! Very professional and high quality work.",
-                "Excellent service with attention to detail. Would definitely use again.",
-                "Very satisfied with the quality and professionalism. Highly recommend this provider."
-            },
-            // 5 stars
-            {
-                "Outstanding " + serviceName.toLowerCase() + " service! Exceeded all expectations. Perfect!",
-                "Absolutely fantastic work! Professional, punctual, and exceptional quality. 10/10!",
-                "Best " + serviceName.toLowerCase() + " service I've ever received. Will definitely book again!"
-            }
+                // 1 star
+                {
+                        "Very disappointed with the " + serviceName.toLowerCase()
+                                + ". Poor quality and unprofessional service.",
+                        "Would not recommend. The service was below expectations and the provider was late.",
+                        "Terrible experience. Had to redo the work myself. Complete waste of money."
+                },
+                // 2 stars
+                {
+                        "The " + serviceName.toLowerCase() + " was okay but had several issues. Could be better.",
+                        "Service was completed but not to the standard I expected. Some problems with quality.",
+                        "Average service with room for improvement. Provider was friendly but work quality was lacking."
+                },
+                // 3 stars
+                {
+                        "Decent " + serviceName.toLowerCase() + " service. Got the job done but nothing exceptional.",
+                        "Good service overall. A few minor issues but generally satisfied with the results.",
+                        "Fair quality work. The provider was professional and completed the job on time."
+                },
+                // 4 stars
+                {
+                        "Great " + serviceName.toLowerCase() + " service! Very professional and high quality work.",
+                        "Excellent service with attention to detail. Would definitely use again.",
+                        "Very satisfied with the quality and professionalism. Highly recommend this provider."
+                },
+                // 5 stars
+                {
+                        "Outstanding " + serviceName.toLowerCase() + " service! Exceeded all expectations. Perfect!",
+                        "Absolutely fantastic work! Professional, punctual, and exceptional quality. 10/10!",
+                        "Best " + serviceName.toLowerCase() + " service I've ever received. Will definitely book again!"
+                }
         };
-        
+
         String[] ratingComments = comments[rating - 1];
-        return ratingComments[(int)(Math.random() * ratingComments.length)];
+        return ratingComments[(int) (Math.random() * ratingComments.length)];
     }
 }

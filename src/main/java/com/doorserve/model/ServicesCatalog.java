@@ -37,11 +37,8 @@ public class ServicesCatalog {
     @Column(nullable = false)
     private String category;
 
-    private BigDecimal price;
-    
-    private Integer duration; // in minutes
-    
-    private Double rating;
+    @Column(name = "base_duration")
+    private Integer baseDuration; // suggested duration in minutes
     
     @Column(name = "image_url")
     private String imageUrl;

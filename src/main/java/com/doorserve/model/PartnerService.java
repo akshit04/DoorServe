@@ -39,6 +39,8 @@ public class PartnerService {
     @JoinColumn(name = "service_catalog_id", nullable = false)
     private ServicesCatalog serviceCatalog;
 
+    private String title; // Provider's custom title for their service offering
+
     @Column(nullable = false)
     private BigDecimal price;
 
@@ -71,5 +73,18 @@ public class PartnerService {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    // Helper methods for accessing IDs
+    public Long getPartnerId() {
+        return partner != null ? partner.getId() : null;
+    }
+
+    public Long getServiceCatalogId() {
+        return serviceCatalog != null ? serviceCatalog.getId() : null;
+    }
+
+    public ServicesCatalog getServicesCatalog() {
+        return serviceCatalog;
     }
 }

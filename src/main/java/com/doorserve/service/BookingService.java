@@ -53,7 +53,8 @@ public class BookingService {
         Booking booking = new Booking();
         booking.setCustomer(currentUser);
         booking.setPartner(partner);
-        booking.setServiceCatalog(serviceCatalog);
+        // We need to find the partner service for this booking
+        // For now, we'll need to update the booking creation logic
         booking.setBookingDate(request.getBookingDate());
         booking.setStartTime(request.getStartTime());
         booking.setEndTime(endTime);
@@ -195,8 +196,8 @@ public class BookingService {
                 .customerName(booking.getCustomer().getFirstName() + " " + booking.getCustomer().getLastName())
                 .partnerId(booking.getPartner().getId())
                 .partnerName(booking.getPartner().getFirstName() + " " + booking.getPartner().getLastName())
-                .serviceId(booking.getServiceCatalog().getId())
-                .serviceName(booking.getServiceCatalog().getName())
+                .serviceId(booking.getPartnerService().getServiceCatalog().getId())
+                .serviceName(booking.getPartnerService().getTitle())
                 .bookingDate(booking.getBookingDate())
                 .startTime(booking.getStartTime())
                 .endTime(booking.getEndTime())
