@@ -105,6 +105,75 @@ public class ServicesCatalogService {
     }
 
     /**
+     * Convert a string to a URL-friendly slug
+     * @param text The text to convert
+     * @return URL-friendly slug
+     */
+    private String createSlug(String text) {
+        if (text == null) return "";
+        return text.toLowerCase()
+                .replaceAll("[^a-z0-9\\s-]", "") // Remove special characters
+                .replaceAll("\\s+", "-") // Replace spaces with hyphens
+                .replaceAll("-+", "-") // Replace multiple hyphens with single
+                .replaceAll("^-|-$", ""); // Remove leading/trailing hyphens
+    }
+
+    /**
+     * Public method to create slug for debugging
+     * @param text The text to convert
+     * @return URL-friendly slug
+     */
+    public String createSlugPublic(String text) {
+        return createSlug(text);
+    }
+
+    /**
+     * Find service by slug (URL-friendly name)
+     * @param slug The service slug
+     * @return The service if found
+     */
+    public Optional<ServicesCatalog> findServiceBySlug(String slug) {
+        List<ServicesCatalog> allServices = servicesCatalogRepository.findAll();
+        return allServices.stream()
+                .filter(service -> createSlug(service.getName()).equals(slug))
+                .findFirst();
+    }
+
+    /**
+     * Find services by category slug
+     * @param categorySlug The category slug
+     * @return List of services in the given category
+     */
+    public List<ServicesCatalog> findServicesByCategorySlug(String categorySlug) {
+        List<ServicesCatalog> allServices = servicesCatalogRepository.findAll();
+        System.out.println("🔍 DEBUG: Total services in DB: " + allServices.size());
+        
+        List<ServicesCatalog> matchingServices = allServices.stream()
+                .filter(service -> {
+                    String serviceSlug = createSlug(service.getCategory());
+                    System.out.println("🔍 DEBUG: Service '" + service.getName() + "' category '" + service.getCategory() + "' → slug '" + serviceSlug + "' (looking for '" + categorySlug + "')");
+                    return serviceSlug.equals(categorySlug);
+                })
+                .toList();
+        
+        System.out.println("🔍 DEBUG: Found " + matchingServices.size() + " matching services");
+        return matchingServices;
+    }
+
+    /**
+     * Get detailed service information by slug
+     * @param slug The service slug
+     * @return ServiceDetailsDto with service and partner information
+     */
+    public ServiceDetailsDto getServiceDetailsBySlug(String slug) {
+        Optional<ServicesCatalog> serviceOpt = findServiceBySlug(slug);
+        if (serviceOpt.isEmpty()) {
+            return null;
+        }
+        return getServiceDetails(serviceOpt.get().getId());
+    }
+
+    /**
      * Get detailed service information including available partners
      * @param serviceId The service ID
      * @return ServiceDetailsDto with service and partner information
@@ -159,4 +228,6 @@ public class ServicesCatalogService {
                 .averageRating(averageRating)
                 .build();
     }
+
+
 }

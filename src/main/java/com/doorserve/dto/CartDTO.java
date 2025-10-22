@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class CartDTO {
     private Long id;
+    private Long partnerServiceId;
     private ServiceDTO service;
     private ProviderDTO provider;
     private String title;

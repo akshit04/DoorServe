@@ -43,6 +43,31 @@ public class ServiceController {
         return ResponseEntity.ok(servicesCatalogService.findServicesByCategory(category));
     }
 
+    // Slug-based endpoints for better URLs
+    @GetMapping("/api/services/by-slug/{slug}")
+    public ResponseEntity<ServicesCatalog> getServiceBySlug(@PathVariable String slug) {
+        return servicesCatalogService.findServiceBySlug(slug)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/api/services/by-slug/{slug}/details")
+    public ResponseEntity<ServiceDetailsDto> getServiceDetailsBySlug(@PathVariable String slug) {
+        ServiceDetailsDto serviceDetails = servicesCatalogService.getServiceDetailsBySlug(slug);
+        if (serviceDetails == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(serviceDetails);
+    }
+
+    @GetMapping("/api/services/category-slug/{categorySlug}")
+    public ResponseEntity<List<ServicesCatalog>> getServicesByCategorySlug(@PathVariable String categorySlug) {
+        System.out.println("🔍 DEBUG: Looking for services with category slug: " + categorySlug);
+        List<ServicesCatalog> services = servicesCatalogService.findServicesByCategorySlug(categorySlug);
+        System.out.println("🔍 DEBUG: Found " + services.size() + " services");
+        return ResponseEntity.ok(services);
+    }
+
     @GetMapping("/api/services/provider/{providerId}")
     public ResponseEntity<List<ServicesCatalog>> getServicesByProviderId(@PathVariable Long providerId) {
         // For now, return all services. This can be implemented later when provider relationship is established
@@ -84,5 +109,22 @@ public class ServiceController {
                 .limit(limit)
                 .toList();
         return ResponseEntity.ok(featuredServices);
+    }
+
+    // Debug endpoint to see all categories and their slugs
+    @GetMapping("/api/services/debug/categories")
+    public ResponseEntity<java.util.Map<String, String>> getDebugCategories() {
+        List<ServicesCatalog> allServices = servicesCatalogService.findAllServices();
+        java.util.Map<String, String> categoryToSlug = new java.util.HashMap<>();
+        
+        allServices.stream()
+                .map(ServicesCatalog::getCategory)
+                .distinct()
+                .forEach(category -> {
+                    String slug = servicesCatalogService.createSlugPublic(category);
+                    categoryToSlug.put(category, slug);
+                });
+        
+        return ResponseEntity.ok(categoryToSlug);
     }
 }

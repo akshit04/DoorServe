@@ -89,6 +89,7 @@ public class CartController {
     private CartDTO convertToDTO(Cart cart) {
         CartDTO dto = new CartDTO();
         dto.setId(cart.getId());
+        dto.setPartnerServiceId(cart.getPartnerService().getId());
         dto.setQuantity(cart.getQuantity());
         dto.setPrice(cart.getPrice());
         dto.setCreatedAt(cart.getCreatedAt());

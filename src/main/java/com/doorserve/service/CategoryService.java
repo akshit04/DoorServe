@@ -40,6 +40,7 @@ public class CategoryService {
     private Map<String, Object> createCategoryInfo(String categoryName) {
         Map<String, Object> category = new HashMap<>();
         category.put("name", categoryName);
+        category.put("slug", createSlug(categoryName));
         category.put("description", getCategoryDescription(categoryName));
         category.put("iconUrl", getCategoryIcon(categoryName));
         
@@ -48,6 +49,20 @@ public class CategoryService {
         category.put("serviceCount", serviceCount);
         
         return category;
+    }
+
+    /**
+     * Convert a string to a URL-friendly slug
+     * @param text The text to convert
+     * @return URL-friendly slug
+     */
+    private String createSlug(String text) {
+        if (text == null) return "";
+        return text.toLowerCase()
+                .replaceAll("[^a-z0-9\\s-]", "") // Remove special characters
+                .replaceAll("\\s+", "-") // Replace spaces with hyphens
+                .replaceAll("-+", "-") // Replace multiple hyphens with single
+                .replaceAll("^-|-$", ""); // Remove leading/trailing hyphens
     }
 
     private String getCategoryDescription(String categoryName) {

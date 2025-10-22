@@ -107,3 +107,47 @@ CREATE INDEX IF NOT EXISTS idx_reviews_customer_id ON reviews(customer_id);
 CREATE INDEX IF NOT EXISTS idx_reviews_partner_id ON reviews(partner_id);
 CREATE INDEX IF NOT EXISTS idx_reviews_partner_service_id ON reviews(partner_service_id);
 CREATE INDEX IF NOT EXISTS idx_reviews_rating ON reviews(rating);
+
+-- Payment related tables
+CREATE TABLE IF NOT EXISTS payments (
+    id SERIAL PRIMARY KEY,
+    booking_id BIGINT REFERENCES bookings(id),
+    customer_id BIGINT NOT NULL REFERENCES users(id),
+    stripe_payment_intent_id VARCHAR(255) UNIQUE,
+    amount DECIMAL(10, 2) NOT NULL,
+    currency VARCHAR(3) DEFAULT 'USD',
+    status VARCHAR(50) NOT NULL, -- pending, succeeded, failed, canceled
+    payment_method VARCHAR(50), -- card, bank_transfer, etc.
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS orders (
+    id SERIAL PRIMARY KEY,
+    customer_id BIGINT NOT NULL REFERENCES users(id),
+    total_amount DECIMAL(10, 2) NOT NULL,
+    status VARCHAR(50) NOT NULL DEFAULT 'pending', -- pending, confirmed, completed, canceled
+    payment_id BIGINT REFERENCES payments(id),
+    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS order_items (
+    id SERIAL PRIMARY KEY,
+    order_id BIGINT NOT NULL REFERENCES orders(id),
+    partner_service_id BIGINT NOT NULL REFERENCES partner_services(id),
+    quantity INTEGER NOT NULL DEFAULT 1,
+    price DECIMAL(10, 2) NOT NULL,
+    booking_date DATE,
+    start_time TIME,
+    end_time TIME,
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+-- Indexes for payment tables
+CREATE INDEX IF NOT EXISTS idx_payments_booking_id ON payments(booking_id);
+CREATE INDEX IF NOT EXISTS idx_payments_customer_id ON payments(customer_id);
+CREATE INDEX IF NOT EXISTS idx_payments_status ON payments(status);
+CREATE INDEX IF NOT EXISTS idx_orders_customer_id ON orders(customer_id);
+CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
+CREATE INDEX IF NOT EXISTS idx_order_items_order_id ON order_items(order_id);

@@ -174,3 +174,67 @@ kill -9 <PID>
 # server:
 #   port: 8081
 ```
+
+## 💳 Payment Integration
+
+### Overview
+The application includes a complete payment system integrated with Stripe that supports:
+- Direct payment from service provider pages
+- Cart-based checkout with multiple services
+- Credit/Debit card payments
+- Order tracking and payment history
+- Automatic booking creation after successful payment
+
+### Setup Requirements
+
+#### 1. Stripe Account
+1. Create a Stripe account at https://stripe.com
+2. Get your API keys from the Stripe Dashboard
+3. Add keys to environment files (see Payment Setup Guide)
+
+#### 2. Environment Variables
+Backend `.env`:
+```bash
+STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key_here
+STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key_here
+```
+
+Frontend `.env`:
+```bash
+REACT_APP_STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_publishable_key_here
+```
+
+#### 3. Dependencies
+Backend dependencies are already included in `pom.xml`:
+- Stripe Java SDK (version 24.16.0)
+
+Frontend dependencies need to be installed:
+```bash
+cd door-serve-fe
+npm install @stripe/react-stripe-js @stripe/stripe-js
+```
+
+### Database Schema
+The payment system adds these tables:
+- `payments` - Payment transaction details and Stripe integration
+- `orders` - Groups services into orders with customer and payment links
+- `order_items` - Individual services within orders with booking details
+
+### API Endpoints
+- `POST /api/payments/create-payment-intent` - Initialize payment
+- `POST /api/payments/confirm-payment` - Confirm payment and create bookings
+- `GET /api/payments/history` - Customer payment history
+- `GET /api/payments/orders` - Customer orders
+
+### Frontend Routes
+- `/checkout` - Payment form and order summary
+- `/payment-success` - Payment confirmation page
+- `/orders` - Order and payment history
+
+### Testing
+Use Stripe test cards:
+- Success: 4242 4242 4242 4242
+- Decline: 4000 0000 0000 0002
+- Authentication required: 4000 0025 0000 3155
+
+For detailed setup instructions, see `PAYMENT_SETUP.md`.
